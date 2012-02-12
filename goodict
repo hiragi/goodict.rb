@@ -1,0 +1,73 @@
+#!/usr/local/bin/ruby
+
+require 'rubygems'
+require 'mechanize'
+require 'hpricot'
+require 'open-uri'
+
+def usage()
+	DATA.each{ |line|
+		puts line
+	}
+end
+
+def putsLine(num)
+	puts "-" * num
+end
+
+agent = Mechanize.new
+agent.get("http://dictionary.goo.ne.jp/ej/")
+
+searchword = []
+agent.page.form_with(:name => "dict"){ |form|
+	if ARGV.length == 1
+		searchword.push(ARGV[0])
+	elsif ARGV.length >= 2
+		ARGV.each do |word|
+			searchword.push(' ' + word)
+		end
+	else
+		usage()
+		exit(1)
+	end
+	form.field_with(:name => "MT").value = searchword
+	form.submit
+}
+
+url = agent.page.uri.to_s
+
+if url =~ /.srch.*/
+	begin
+		word = agent.page.at("dl.allList")
+
+		only_word = (word/:dt/:a)
+		meaning = (word/:dd)
+
+		for i in 0..only_word.length-1
+			putsLine(50)
+			puts only_word[i].inner_html, "\n\n"
+			puts meaning[i].to_s.gsub("<dd>", "").gsub("</dd>", ""), "\n"
+		end
+		putsLine(50)
+	rescue
+		abort "Your search word is not found."
+	end
+
+else
+	putsLine(50)
+	puts "\n", searchword.to_s.strip
+	word = agent.page.at("span.prog_meaning")
+	puts word.inner_html.delete("<hinshib>").delete("/"), "\n\n"
+	putsLine(50)
+end
+
+__END__
+---------------------------
+- USAGE
+$ goodict [search word]
+
+- EXAMPLE
+$ goodict inflation
+$ goodict monetary policy
+$ day after day
+---------------------------
