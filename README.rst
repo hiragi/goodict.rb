@@ -5,7 +5,9 @@ This is a simple CLI English-Japanese dictionary on `goo辞書 <http://dictionar
 You can look up an English word like this.
 
     $ goodict fujisan
+
     $ goodict monetary policy
+
     $ goodict day after day
 
 REQUIREMENTS
